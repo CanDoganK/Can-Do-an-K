@@ -9,8 +9,8 @@ export type LinkItem = { title: string; description: string; url: string };
 
 export const LINKS: LinkItem[] = [
   { title: 'Resmi site', description: 'Kayıt ve hesap işlemleri', url: 'https://con.city' },
-  // TODO: Doğru linkler netleşince ekle:
-  // { title: 'Discord', description: 'Topluluk ve destek', url: 'https://discord.gg/...' },
+  { title: 'Discord', description: 'Topluluk, duyurular ve destek', url: 'https://discord.gg/concity' },
+  // TODO: Mağaza linki netleşince ekle:
   // { title: 'Mağaza', description: 'KCoin ve paketler', url: 'https://...' },
 ];
 
