@@ -6,6 +6,8 @@ import { useEffect } from 'react';
 import 'react-native-reanimated';
 
 import Colors from '@/constants/Colors';
+// Arka plan görevi uygulama açılırken tanımlanmış olmalı, bu import onu tanımlar.
+import { useOpenNewsFromNotification } from '@/src/notifications';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -40,6 +42,8 @@ export default function RootLayout() {
   useEffect(() => {
     if (error) throw error;
   }, [error]);
+
+  useOpenNewsFromNotification(loaded);
 
   useEffect(() => {
     if (loaded) {

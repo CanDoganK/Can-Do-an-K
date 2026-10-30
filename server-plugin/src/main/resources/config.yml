@@ -1,0 +1,32 @@
+# ConCityAPI ayarları
+http:
+  # API'nin dinleyeceği port. Dışarıya doğrudan açmak yerine HTTPS veren bir
+  # ters proxy (nginx, Caddy, Cloudflare) arkasına koymanız önerilir.
+  bind: 0.0.0.0
+  port: 8085
+
+# Oyuncu istatistikleri: anahtar -> PlaceholderAPI placeholder'ı.
+# Mobil uygulama şu anahtarları tanır: rank, islandLevel, balance, kills, playTimeHours.
+# Placeholder'ları sunucuda kullanılan eklentilere göre düzenleyin
+# (aşağıdakiler örnek; kurulu eklentilerinize göre değişir).
+stats:
+  rank: '%vault_rank%'
+  balance: '%vault_eco_balance%'
+  kills: '%statistic_player_kills%'
+  playTimeHours: '%statistic_hours_played%'
+  # islandLevel: '%superior_island_level%'
+
+# Uygulamada görünen duyurular. tag: Güncelleme | Etkinlik | Duyuru
+# date isteğe bağlıdır (YYYY-AA-GG).
+news:
+  - id: season-3
+    title: Season 3 başladı
+    summary: Yeni görev sistemi, yenilenen adalar ve güncellenen ekonomi.
+    body: |
+      Season 3 ile birlikte gelen başlıca değişiklikler:
+
+      • Yeni görev sistemi
+      • Yeniden düzenlenen ada sistemi
+      • Güncellenen ekonomi ve kasalar
+      • Performans iyileştirmeleri
+    tag: Güncelleme

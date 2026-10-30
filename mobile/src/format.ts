@@ -3,7 +3,7 @@ import type { NewsItem } from './data/news';
 
 export const TAG_COLORS: Record<NewsItem['tag'], string> = {
   Güncelleme: Colors.tint,
-  Etkinlik: Colors.warning,
+  Etkinlik: Colors.accent,
   Duyuru: '#4DA3FF',
 };
 

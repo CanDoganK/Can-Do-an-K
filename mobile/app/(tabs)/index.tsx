@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Image, Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 
+import { NotificationSettings } from '@/components/NotificationSettings';
 import { Badge, Body, Card, ErrorBox, Loading, Muted, Title } from '@/components/ui';
 import Colors from '@/constants/Colors';
 import { fetchServerStatus, type ServerStatus } from '@/src/api/status';
@@ -43,19 +44,13 @@ export default function StatusScreen() {
       style={styles.screen}
       contentContainerStyle={styles.content}
       refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.tint} />}>
-      <Card style={styles.header}>
-        {status?.iconDataUri ? (
-          <Image source={{ uri: status.iconDataUri }} style={styles.icon} />
-        ) : (
-          <View style={[styles.icon, styles.iconPlaceholder]} />
-        )}
-        <View style={{ flex: 1, gap: 4 }}>
-          <Title>{SERVER.name}</Title>
-          <Pressable onPress={copyAddress}>
-            <Muted>{copied ? 'Adres kopyalandı ✓' : `${SERVER.address}  ·  kopyalamak için dokun`}</Muted>
-          </Pressable>
-        </View>
-      </Card>
+      <View style={styles.header}>
+        <Image source={require('@/assets/images/logo.png')} style={styles.logo} resizeMode="contain" />
+        <Pressable onPress={copyAddress} style={styles.address}>
+          <Body style={styles.addressText}>{SERVER.address}</Body>
+          <Muted>{copied ? 'Kopyalandı ✓' : 'Kopyalamak için dokun'}</Muted>
+        </Pressable>
+      </View>
 
       {!status && !error && <Loading />}
       {error && <ErrorBox message={`Sunucu durumu alınamadı: ${error}`} />}
@@ -110,6 +105,8 @@ export default function StatusScreen() {
           </Muted>
         </>
       )}
+
+      <NotificationSettings />
     </ScrollView>
   );
 }
@@ -117,9 +114,20 @@ export default function StatusScreen() {
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: Colors.background },
   content: { padding: 16, gap: 12 },
-  header: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  icon: { width: 56, height: 56, borderRadius: 8 },
-  iconPlaceholder: { backgroundColor: Colors.cardBorder },
+  header: { alignItems: 'center', gap: 12, paddingVertical: 8 },
+  logo: { width: '85%', aspectRatio: 474 / 106 },
+  address: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    backgroundColor: Colors.card,
+    borderColor: Colors.cardBorder,
+    borderWidth: 1,
+    borderRadius: 999,
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+  },
+  addressText: { fontWeight: '700', color: Colors.tint },
   players: { fontSize: 32 },
   bar: { height: 8, borderRadius: 4, backgroundColor: Colors.cardBorder, overflow: 'hidden' },
   barFill: { height: '100%', backgroundColor: Colors.tint },

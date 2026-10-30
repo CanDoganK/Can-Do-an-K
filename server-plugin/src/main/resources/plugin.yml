@@ -1,0 +1,6 @@
+name: ConCityAPI
+version: ${project.version}
+main: city.con.api.ConCityApiPlugin
+api-version: '1.21'
+softdepend: [PlaceholderAPI]
+description: ConCity mobil uygulaması için salt okunur HTTP API.
