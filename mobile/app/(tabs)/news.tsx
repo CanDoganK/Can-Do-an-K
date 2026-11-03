@@ -1,6 +1,6 @@
 import { Link } from 'expo-router';
-import { useEffect, useState } from 'react';
-import { FlatList, Pressable, StyleSheet } from 'react-native';
+import { useCallback, useEffect, useState } from 'react';
+import { FlatList, Pressable, RefreshControl, StyleSheet, View } from 'react-native';
 
 import { Badge, Body, Card, ErrorBox, Loading, Muted, Title } from '@/components/ui';
 import Colors from '@/constants/Colors';
@@ -10,14 +10,34 @@ import { formatDate, TAG_COLORS } from '@/src/format';
 export default function NewsScreen() {
   const [items, setItems] = useState<NewsItem[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    fetchNews()
-      .then(setItems)
-      .catch((e) => setError(e instanceof Error ? e.message : 'Bilinmeyen hata'));
+  const load = useCallback(async () => {
+    try {
+      setError(null);
+      setItems(await fetchNews());
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Bilinmeyen hata');
+    }
   }, []);
 
-  if (error) return <ErrorBox message={error} />;
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await load();
+    setRefreshing(false);
+  };
+
+  if (error) {
+    return (
+      <View style={[styles.screen, styles.content]}>
+        <ErrorBox message={error} onRetry={load} />
+      </View>
+    );
+  }
   if (!items) return <Loading />;
 
   return (
@@ -26,6 +46,8 @@ export default function NewsScreen() {
       contentContainerStyle={styles.content}
       data={[...items].sort((a, b) => (b.date ?? '').localeCompare(a.date ?? ''))}
       keyExtractor={(item) => item.id}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Colors.tint} />}
+      ListEmptyComponent={<Muted>Henüz duyuru yok.</Muted>}
       renderItem={({ item }) => (
         <Link href={{ pathname: '/news/[id]', params: { id: item.id } }} asChild>
           <Pressable>

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   Image,
@@ -20,6 +20,7 @@ import {
   type ConCityStats,
   type MojangProfile,
 } from '@/src/api/player';
+import { addRecentSearch, getMyUsername, getRecentSearches, setMyUsername } from '@/src/storage';
 
 type Result = { profile: MojangProfile; stats: ConCityStats | null };
 
@@ -36,9 +37,28 @@ export default function ProfileScreen() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<Result | null>(null);
+  const [myName, setMyName] = useState<string | null>(null);
+  const [recent, setRecent] = useState<string[]>([]);
 
-  const search = async () => {
-    const name = username.trim();
+  // Kayıtlı hesap varsa sekme açılınca onu göster.
+  useEffect(() => {
+    getRecentSearches().then(setRecent);
+    getMyUsername().then((saved) => {
+      setMyName(saved);
+      if (saved) search(saved);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const toggleMyAccount = async (name: string) => {
+    const next = myName?.toLowerCase() === name.toLowerCase() ? null : name;
+    await setMyUsername(next);
+    setMyName(next);
+  };
+
+  const search = async (override?: string) => {
+    const name = (override ?? username).trim();
+    setUsername(name);
     if (!/^[A-Za-z0-9_]{3,16}$/.test(name)) {
       setError('Geçerli bir Minecraft kullanıcı adı girin (3–16 karakter, harf/rakam/_).');
       return;
@@ -53,12 +73,15 @@ export default function ProfileScreen() {
         return;
       }
       setResult({ profile, stats: await fetchConCityStats(profile.id) });
+      setRecent(await addRecentSearch(profile.name));
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Bilinmeyen hata');
     } finally {
       setLoading(false);
     }
   };
+
+  const isMine = (r: Result) => myName?.toLowerCase() === r.profile.name.toLowerCase();
 
   return (
     <ScrollView
@@ -74,13 +97,24 @@ export default function ProfileScreen() {
           autoCorrect={false}
           value={username}
           onChangeText={setUsername}
-          onSubmitEditing={search}
+          onSubmitEditing={() => search()}
           returnKeyType="search"
         />
-        <Pressable style={styles.button} onPress={search} disabled={loading}>
+        <Pressable style={styles.button} onPress={() => search()} disabled={loading}>
           {loading ? <ActivityIndicator color="#000" /> : <Text style={styles.buttonText}>Ara</Text>}
         </Pressable>
       </View>
+
+      {recent.length > 0 && (
+        <View style={styles.recentRow}>
+          {recent.map((name) => (
+            <Pressable key={name} style={styles.recentChip} onPress={() => search(name)} disabled={loading}>
+              <Image source={{ uri: avatarUrl(name, 32) }} style={styles.recentHead} />
+              <Text style={styles.recentText}>{name}</Text>
+            </Pressable>
+          ))}
+        </View>
+      )}
 
       {error && <ErrorBox message={error} />}
 
@@ -94,6 +128,13 @@ export default function ProfileScreen() {
                 <Title>{result.profile.name}</Title>
               </View>
               <Muted selectable>{result.profile.id}</Muted>
+              <Pressable
+                style={[styles.mineButton, isMine(result) && styles.mineButtonActive]}
+                onPress={() => toggleMyAccount(result.profile.name)}>
+                <Text style={[styles.mineText, isMine(result) && styles.mineTextActive]}>
+                  {isMine(result) ? '★ Hesabım' : '☆ Bu benim hesabım'}
+                </Text>
+              </Pressable>
             </View>
           </Card>
 
@@ -148,4 +189,30 @@ const styles = StyleSheet.create({
   nameRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   avatar: { width: 24, height: 24, borderRadius: 4 },
   statRow: { flexDirection: 'row', justifyContent: 'space-between' },
+  recentRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  recentChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: Colors.card,
+    borderColor: Colors.cardBorder,
+    borderWidth: 1,
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  recentHead: { width: 18, height: 18, borderRadius: 3 },
+  recentText: { color: Colors.text, fontSize: 13 },
+  mineButton: {
+    alignSelf: 'flex-start',
+    borderColor: Colors.tint,
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    marginTop: 4,
+  },
+  mineButtonActive: { backgroundColor: Colors.tint },
+  mineText: { color: Colors.tint, fontWeight: '600', fontSize: 13 },
+  mineTextActive: { color: '#000' },
 });

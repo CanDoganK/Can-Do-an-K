@@ -1,12 +1,16 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useFocusEffect } from 'expo-router';
+import { useCallback, useState } from 'react';
 import { Image, Pressable, RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 
 import { NotificationSettings } from '@/components/NotificationSettings';
 import { Badge, Body, Card, ErrorBox, Loading, Muted, Title } from '@/components/ui';
 import Colors from '@/constants/Colors';
+import { avatarUrl } from '@/src/api/player';
 import { fetchServerStatus, type ServerStatus } from '@/src/api/status';
 import { SERVER } from '@/src/config';
+
+const AUTO_REFRESH_MS = 60_000;
 
 export default function StatusScreen() {
   const [status, setStatus] = useState<ServerStatus | null>(null);
@@ -23,9 +27,14 @@ export default function StatusScreen() {
     }
   }, []);
 
-  useEffect(() => {
-    load();
-  }, [load]);
+  // Ekran açıkken dakikada bir yenile; başka sekmeye geçince dur.
+  useFocusEffect(
+    useCallback(() => {
+      load();
+      const timer = setInterval(load, AUTO_REFRESH_MS);
+      return () => clearInterval(timer);
+    }, [load])
+  );
 
   const onRefresh = async () => {
     setRefreshing(true);
@@ -53,7 +62,7 @@ export default function StatusScreen() {
       </View>
 
       {!status && !error && <Loading />}
-      {error && <ErrorBox message={`Sunucu durumu alınamadı: ${error}`} />}
+      {error && <ErrorBox message={`Sunucu durumu alınamadı. ${error}`} onRetry={load} />}
 
       {status && (
         <>
@@ -100,8 +109,25 @@ export default function StatusScreen() {
             </Card>
           )}
 
+          {status.online && status.playerSample.length > 0 && (
+            <Card>
+              <Muted>Şu an oyunda</Muted>
+              <View style={styles.playerList}>
+                {status.playerSample.map((p) => (
+                  <View key={p.uuid} style={styles.playerChip}>
+                    <Image source={{ uri: avatarUrl(p.uuid, 32) }} style={styles.playerHead} />
+                    <Body style={styles.playerName}>{p.name}</Body>
+                  </View>
+                ))}
+              </View>
+              {status.playerSample.length < status.playersOnline && (
+                <Muted>ve {status.playersOnline - status.playerSample.length} oyuncu daha</Muted>
+              )}
+            </Card>
+          )}
+
           <Muted style={styles.footer}>
-            Son kontrol: {status.checkedAt.toLocaleTimeString('tr-TR')} · Yenilemek için aşağı çekin
+            Son kontrol: {status.checkedAt.toLocaleTimeString('tr-TR')} · Her dakika otomatik yenilenir
           </Muted>
         </>
       )}
@@ -132,4 +158,16 @@ const styles = StyleSheet.create({
   bar: { height: 8, borderRadius: 4, backgroundColor: Colors.cardBorder, overflow: 'hidden' },
   barFill: { height: '100%', backgroundColor: Colors.tint },
   footer: { textAlign: 'center' },
+  playerList: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  playerChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: Colors.background,
+    borderRadius: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  playerHead: { width: 20, height: 20, borderRadius: 3 },
+  playerName: { fontSize: 14 },
 });

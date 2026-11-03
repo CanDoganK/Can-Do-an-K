@@ -42,3 +42,13 @@ Uygulamayı mağazalara yüklemeden önce logo ve ad kullanımı için sunucu sa
 [docs/API.md](../docs/API.md) dosyasında; hazır bir örnek Paper eklentisi `server-plugin/` klasöründe.
 
 Discord ve mağaza linkleri `src/config.ts` içindeki `LINKS` listesine eklenir.
+
+## Sürüm geçmişi
+
+**1.1.0**
+- Durum: ekran açıkken her dakika otomatik yenileme; sunucu izin veriyorsa çevrimiçi oyuncu listesi
+- Profil: "Bu benim hesabım" ile hesabı kaydetme (sekme açılınca otomatik yüklenir) ve son 5 arama
+- Haberler: aşağı çekerek yenileme
+- Hata kartlarında "Tekrar dene" düğmesi
+
+**1.0.0** — İlk sürüm: Durum, Haberler, Profil, Rehber, bildirimler, ConCity simgesi

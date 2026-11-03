@@ -1,5 +1,4 @@
-import type { ReactNode } from 'react';
-import { ActivityIndicator, StyleSheet, Text, View, type TextProps, type ViewProps } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View, type TextProps, type ViewProps } from 'react-native';
 
 import Colors from '@/constants/Colors';
 
@@ -35,11 +34,15 @@ export function Loading() {
   );
 }
 
-export function ErrorBox({ message, action }: { message: string; action?: ReactNode }) {
+export function ErrorBox({ message, onRetry }: { message: string; onRetry?: () => void }) {
   return (
     <Card style={{ borderColor: Colors.offline }}>
       <Body>{message}</Body>
-      {action}
+      {onRetry && (
+        <Pressable onPress={onRetry} style={styles.retry}>
+          <Text style={styles.retryText}>Tekrar dene</Text>
+        </Pressable>
+      )}
     </Card>
   );
 }
@@ -65,4 +68,13 @@ const styles = StyleSheet.create({
   },
   badgeText: { fontSize: 12, fontWeight: '600' },
   center: { padding: 32, alignItems: 'center' },
+  retry: {
+    alignSelf: 'flex-start',
+    borderColor: Colors.tint,
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+  },
+  retryText: { color: Colors.tint, fontWeight: '600' },
 });
